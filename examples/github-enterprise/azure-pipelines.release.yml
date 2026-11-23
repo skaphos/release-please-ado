@@ -1,0 +1,62 @@
+# SPDX-FileCopyrightText: 2026 Skaphos
+# SPDX-License-Identifier: MIT
+#
+# Example consumer pipeline: a repository hosted on GitHub Enterprise
+# (github.com/GHE.com or GHES) whose CI runs on Azure Pipelines.
+# Replaces .github/workflows/release-please.yml.
+#
+# Create it in Azure DevOps as a pipeline pointing at this file in the GitHub
+# repo. Triggers must live here, not in a template, and cannot use variables.
+
+trigger:
+  batch: true            # one run at a time; queued pushes are built together
+  branches:
+    include: [main]
+pr: none                 # release-please is not a PR check
+
+resources:
+  repositories:
+    - repository: release_please_ado
+      type: github                       # or `githubenterprise` / `git` for a vendored copy
+      endpoint: github-release-tooling   # service connection name (read access is enough)
+      name: skaphos/release-please-ado
+      ref: refs/tags/v0.1.0              # pin a tag; never track main
+
+variables:
+  - group: release-bot   # RELEASE_BOT_APP_ID, RELEASE_BOT_PRIVATE_KEY (Key Vault-linked)
+
+stages:
+  - stage: release_please
+    displayName: Release Please
+    jobs:
+      - template: templates/jobs/release-please.yml@release_please_ado
+        parameters:
+          owner: acme
+          repository: widgets
+          # GHES:  apiUrl: https://github.acme.internal/api/v3
+          # GHE.com data residency: apiUrl: https://api.acme.ghe.com
+          releaseMode: github-release   # or tag-only (Skaphos pattern) / none
+          # Self-hosted agents behind a proxy: set HTTPS_PROXY/NO_PROXY as
+          # pipeline variables; the templates set NODE_USE_ENV_PROXY=1.
+
+  # Runs only when release-please created a release in this run.
+  - stage: publish
+    displayName: Build and publish
+    dependsOn: release_please
+    condition: and(succeeded(), eq(dependencies.release_please.outputs['release_please.release_please.releases_created'], 'true'))
+    variables:
+      tagName: $[ stageDependencies.release_please.release_please.outputs['release_please.tag_name'] ]
+      version: $[ stageDependencies.release_please.release_please.outputs['release_please.version'] ]
+    jobs:
+      - job: build
+        pool:
+          vmImage: ubuntu-24.04
+        steps:
+          - checkout: self
+            fetchDepth: 0
+          - bash: |
+              set -euo pipefail
+              git checkout "$(tagName)"
+              echo "Building $(version) from $(tagName)"
+              # goreleaser / docker build / npm publish ...
+            displayName: Build $(tagName)

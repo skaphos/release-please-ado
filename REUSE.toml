@@ -1,0 +1,9 @@
+version = 1
+SPDX-PackageName = "release-please-ado"
+SPDX-PackageDownloadLocation = "https://github.com/skaphos/release-please-ado"
+
+[[annotations]]
+path = "**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Skaphos"
+SPDX-License-Identifier = "MIT"

@@ -1,0 +1,75 @@
+# SPDX-FileCopyrightText: 2026 Skaphos
+# SPDX-License-Identifier: MIT
+#
+# Run release-please (releases first, then the release PR) and publish the
+# release-please-action outputs as output variables of step `name`.
+# See docs/reference/outputs.md for the output names.
+parameters:
+  - name: name
+    type: string
+    default: release_please
+  - name: toolsPath
+    type: string
+    default: $(Pipeline.Workspace)/release-please-ado
+  - name: token
+    type: string
+    default: $(GITHUB_TOKEN)
+  - name: repoUrl
+    type: string             # owner/repo
+  - name: apiUrl
+    type: string
+    default: https://api.github.com
+  - name: graphqlUrl
+    type: string
+    default: ''              # derived from apiUrl when empty
+  - name: targetBranch
+    type: string
+    default: ''
+  - name: configFile
+    type: string
+    default: release-please-config.json
+  - name: manifestFile
+    type: string
+    default: .release-please-manifest.json
+  - name: releaseType
+    type: string
+    default: ''              # set for single-package mode (no config files)
+  - name: path
+    type: string
+    default: ''
+  - name: releaseMode
+    type: string
+    default: github-release
+    values: [github-release, tag-only, none]
+  - name: skipPullRequest
+    type: boolean
+    default: false
+  - name: fork
+    type: boolean
+    default: false
+  - name: dryRun
+    type: boolean
+    default: false
+
+steps:
+  - bash: node "${{ parameters.toolsPath }}/scripts/release-please-run.mjs"
+    name: ${{ parameters.name }}
+    displayName: release-please (${{ parameters.releaseMode }})
+    env:
+      RP_TOKEN: ${{ parameters.token }}
+      RP_REPO_URL: ${{ parameters.repoUrl }}
+      RP_API_URL: ${{ parameters.apiUrl }}
+      RP_GRAPHQL_URL: ${{ parameters.graphqlUrl }}
+      RP_TARGET_BRANCH: ${{ parameters.targetBranch }}
+      RP_CONFIG_FILE: ${{ parameters.configFile }}
+      RP_MANIFEST_FILE: ${{ parameters.manifestFile }}
+      RP_RELEASE_TYPE: ${{ parameters.releaseType }}
+      RP_PATH: ${{ parameters.path }}
+      RP_RELEASE_MODE: ${{ parameters.releaseMode }}
+      RP_SKIP_PULL_REQUEST: ${{ parameters.skipPullRequest }}
+      RP_FORK: ${{ parameters.fork }}
+      RP_DRY_RUN: ${{ parameters.dryRun }}
+      RP_OUTPUT_FILE: $(Agent.TempDirectory)/release-please-outputs.json
+      # release-please's own proxy option is a no-op on Node fetch
+      # (googleapis/release-please#2838); this makes fetch honor HTTPS_PROXY.
+      NODE_USE_ENV_PROXY: '1'

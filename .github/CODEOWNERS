@@ -1,0 +1,12 @@
+# Default owner for repository changes.
+* @mfacenet
+
+# Release automation and the public template contract are code-owner gated.
+/.github/workflows/ @mfacenet
+/release-please-config.json @mfacenet
+/.release-please-manifest.json @mfacenet
+/RELEASE.md @mfacenet
+/templates/ @mfacenet
+/scripts/ @mfacenet
+/package.json @mfacenet
+/package-lock.json @mfacenet
