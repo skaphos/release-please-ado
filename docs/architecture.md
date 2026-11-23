@@ -2,7 +2,7 @@
 
 ## What this is and is not
 
-This repository is an Azure Pipelines equivalent of `googleapis/release-please-action`. It contains:
+This repository brings release-please to Azure Pipelines: it is the Azure Pipelines equivalent of `googleapis/release-please-action`, or of a release-please job in another forge's CI. It runs against whatever forges upstream release-please supports; today that is GitHub. It contains:
 
 - YAML templates
 - a Node runner script that drives the **unmodified upstream** release-please library
@@ -41,6 +41,6 @@ Later stages read the outputs (`releases_created`, `tag_name`, ...) to decide wh
 
 ## Known limitations
 
-- Source must be on GitHub (github.com, GHE.com, or GHES). Azure Repos-hosted source is out of scope, because upstream release-please is GitHub-only.
+- **Forges follow upstream.** Upstream release-please currently supports only GitHub (github.com, GHE.com, GHES), so `forge: github` is the only value. The runner's `createScm()` switch is where a new upstream forge gets wired in.
 - Template behavior in a live Azure DevOps org has not been validated yet. See the [validation checklist](research.md#validation-checklist).
 - Key Vault-side JWT signing, where the private key never leaves the vault, is planned but not implemented.

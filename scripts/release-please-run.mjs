@@ -15,7 +15,9 @@
 //
 // Configuration is by environment variable (see docs/reference/templates.md,
 // "Runner environment variables"):
-//   RP_TOKEN              GitHub token (App installation token recommended). Required.
+//   RP_FORGE              Forge release-please talks to. Default github (the only
+//                         forge upstream supports today).
+//   RP_TOKEN              Forge token (GitHub: App installation token). Required.
 //   RP_REPO_URL           owner/repo. Required.
 //   RP_API_URL            REST base. Default https://api.github.com (GHES: https://HOST/api/v3)
 //   RP_GRAPHQL_URL        GraphQL base without /graphql. Default derived from RP_API_URL.
@@ -40,6 +42,29 @@ import { pathToFileURL } from 'node:url';
 const require = createRequire(import.meta.url);
 
 export const RELEASE_MODES = ['github-release', 'tag-only', 'none'];
+
+// Forges upstream release-please can drive. This runner follows upstream:
+// when release-please gains another Scm implementation (GitLab, Azure Repos,
+// ...), wire it into createScm() and add it here. Nothing else changes; the
+// Manifest, phase ordering and outputs are forge-agnostic.
+export const FORGES = ['github'];
+
+/** Build the release-please Scm for the configured forge. */
+export async function createScm(cfg, rp) {
+  switch (cfg.forge) {
+    case 'github':
+      return rp.GitHub.create({
+        owner: cfg.owner,
+        repo: cfg.repo,
+        token: cfg.token,
+        apiUrl: cfg.apiUrl,
+        graphqlUrl: cfg.graphqlUrl,
+        defaultBranch: cfg.targetBranch,
+      });
+    default:
+      throw new Error(`forge ${cfg.forge} is not supported by release-please ${rp.VERSION ?? ''}`.trim());
+  }
+}
 
 const truthy = (v) => /^(1|true|yes|on)$/iu.test(String(v ?? '').trim());
 
@@ -183,12 +208,17 @@ export function readConfig(env = process.env) {
     .split('/');
   if (!env.RP_TOKEN) throw new Error('RP_TOKEN is required');
   if (!owner || !repo) throw new Error('RP_REPO_URL must be owner/repo');
+  const forge = env.RP_FORGE || 'github';
+  if (!FORGES.includes(forge)) {
+    throw new Error(`RP_FORGE must be one of ${FORGES.join(', ')} (the forges upstream release-please supports)`);
+  }
   const derived = deriveUrls(env.RP_API_URL || 'https://api.github.com');
   const releaseMode = env.RP_RELEASE_MODE || 'github-release';
   if (!RELEASE_MODES.includes(releaseMode)) {
     throw new Error(`RP_RELEASE_MODE must be one of ${RELEASE_MODES.join(', ')}`);
   }
   return {
+    forge,
     token: env.RP_TOKEN,
     owner,
     repo,
@@ -211,16 +241,12 @@ export function readConfig(env = process.env) {
 }
 
 export async function run(cfg, { rp = require('release-please'), log = console.log } = {}) {
-  const { GitHub, Manifest, Errors } = rp;
-  const github = await GitHub.create({
-    owner: cfg.owner,
-    repo: cfg.repo,
-    token: cfg.token,
-    apiUrl: cfg.apiUrl,
-    graphqlUrl: cfg.graphqlUrl,
-    defaultBranch: cfg.targetBranch,
-  });
+  const { Manifest, Errors } = rp;
+  const github = await createScm(cfg, rp);
   if (cfg.releaseMode === 'tag-only') {
+    // tag-only uses the GitHub git data API; other forges get their own
+    // implementation when they are added.
+    if (cfg.forge !== 'github') throw new Error(`tag-only is not implemented for forge ${cfg.forge}`);
     installTagOnlyRelease(github, { ...cfg, Errors });
   }
   const targetBranch = cfg.targetBranch || github.repository.defaultBranch;

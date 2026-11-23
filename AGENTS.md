@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This repository runs `googleapis/release-please` from Azure DevOps Pipelines when GitHub Actions is not allowed. It ships Azure Pipelines templates, a Node runner around the upstream release-please library, a GitHub App token minter, and guides. Current state and next steps are in [HANDOFF.md](HANDOFF.md).
+This repository brings `googleapis/release-please` to Azure DevOps Pipelines, in place of GitHub Actions or another forge's CI. It supports whatever forges upstream release-please supports; today that is GitHub. Never build forge support that upstream lacks. It ships Azure Pipelines templates, a Node runner around the upstream release-please library, a GitHub App token minter, and guides. Current state and next steps are in [HANDOFF.md](HANDOFF.md).
 
 ## Layout
 

@@ -67,6 +67,7 @@ Parameters:
 Runs [`scripts/release-please-run.mjs`](../../scripts/release-please-run.mjs). Parameters mirror the job template, plus:
 
 - `name` (default `release_please`)
+- `forge` (default `github`; the only value until upstream adds forges)
 - `token` (default `$(GITHUB_TOKEN)`)
 - `repoUrl` (`owner/repo`)
 - `path`
@@ -116,7 +117,8 @@ The step template sets these; set them yourself to use [`scripts/release-please-
 
 | Variable | Default | Description |
 | --- | --- | --- |
-| `RP_TOKEN` | (required) | GitHub token |
+| `RP_FORGE` | `github` | Forge to drive. Only forges upstream release-please supports; today, `github`. |
+| `RP_TOKEN` | (required) | Forge token (GitHub: App installation token) |
 | `RP_REPO_URL` | (required) | `owner/repo` or a full clone URL |
 | `RP_API_URL` | `https://api.github.com` | REST base |
 | `RP_GRAPHQL_URL` | derived | GraphQL base, without `/graphql` |

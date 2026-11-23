@@ -32,4 +32,4 @@ Option 2. The runner pins `release-please` exactly, through `package.json` and i
 - **Config portability.** Existing `release-please-config.json` and manifest files work unchanged.
 - **Tracking the action.** We track the action's output contract by hand; `test/release-please-run.test.mjs` pins it.
 - **Upgrades.** A release-please upgrade means bumping the pin and re-running the tests and the dry-run smoke test.
-- **Azure Repos.** Source hosted in Azure Repos is out of scope. Source stays on GitHub, and only CI moves to Azure Pipelines.
+- **Forges follow upstream.** The runner supports whatever forges upstream release-please supports, selected by `forge`. Today that is only GitHub. A forge upstream lacks is not built here, because that would be a fork.

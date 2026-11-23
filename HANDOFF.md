@@ -6,7 +6,10 @@ This file is the working brief for the next session, local or cloud. Read it, [A
 
 > We're about to work under enterprise rules that limit us to Azure DevOps. release-please is published as a GitHub Action, which won't be available. I need to be able to fully duplicate release-please using ADO. Set it up, do full research, write it up with guides, and create templates and anything else this repo needs to support that.
 
-**Scope (clarified by the maintainer):** source repositories stay on **GitHub**, and only CI runs on **Azure Pipelines**. Hosting code in Azure Repos is out of scope; it would require a release-please fork. Do not add Azure Repos support.
+**Scope (clarified by the maintainer):** this repository brings release-please to Azure Pipelines, in place of GitHub Actions or another forge's CI.
+
+- It supports **whatever forges upstream release-please supports**. Today that is GitHub; if upstream adds GitLab, Azure Repos, or anything else, wire it in.
+- **Do not build forge support that upstream lacks.** That is a fork.
 
 ## State as of 2026-11-22
 
@@ -42,7 +45,11 @@ This file is the working brief for the next session, local or cloud. Read it, [A
    - Then run a real dry run against a scratch GitHub repo, then a real release.
    - Confirm the output reference shapes in `examples/github-enterprise/azure-pipelines.release.yml`.
 2. **Key Vault-side JWT signing option.** Add a `templates/steps/github-app-token-keyvault.yml` that signs the JWT with `az keyvault key sign` inside `AzureCLI@2`, so the private key never leaves the vault. The minter needs a mode that accepts a pre-signed JWT, or one that calls a signing command.
-3. **Upgrade gate.** Add a weekly CI job that runs the tests against `release-please@latest`. Also diff upstream `release-please-action/src/index.ts` against `computeOutputs()`, so output drift is caught before consumers notice.
+3. **Upgrade gate.** Add a weekly CI job that runs the tests against `release-please@latest`. It should also:
+   - diff upstream `release-please-action/src/index.ts` against `computeOutputs()`, so output drift is caught before consumers notice;
+   - flag new `Scm` implementations in release-please's `build/src/`.
+
+   A new forge then becomes a `createScm()` case, a `forge` template value, a token step, and a guide.
 4. **Release this repo.**
    - Once validated, release-please on GitHub Actions (this repo is on github.com) cuts `v0.1.0`.
    - Consumers pin `ref: refs/tags/v0.1.0`.

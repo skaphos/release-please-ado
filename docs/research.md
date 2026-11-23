@@ -60,7 +60,7 @@ manifest.createReleases() / createPullRequests()
   [V]
 - **The internal `Scm` interface.** Since **17.5.0** ("create Scm abstraction", #2729) the library has one: `Manifest.fromManifest`/`fromConfig` accept any `Scm`, and `GitHub` implements it. [V] `build/src/scm.d.ts`
   - `Scm` is not exported from the package index. `package.json` has no `exports` map, though, so a deep import of `release-please/build/src/scm` works.
-- **Consequence.** Source stays on GitHub (github.com, GHE.com, or GHES), and Azure Pipelines is only the runner. That gives **full parity** with release-please-action and needs no fork. This repository is scoped to that model.
+- **Consequence.** This repository is a **runner**: it brings release-please to Azure Pipelines and supports whatever forges upstream supports. Today that is GitHub (github.com, GHE.com, GHES), at full parity with release-please-action and with no fork. When upstream ships another `Scm` implementation, it gets wired into the runner's `createScm()` forge switch and the templates.
 
 ## 3. GitHub API surface release-please needs
 
@@ -187,15 +187,22 @@ See `oiax/.github/workflows/release-please.yml`.
 
 Tags pushed this way are created by the App. In orgs whose tag rulesets let only the release bot create `v*` tags, that is exactly the identity that's allowed.
 
-## 7. Out of scope: Azure Repos as the source
+## 7. Forges beyond GitHub
 
-Source code stays on GitHub; only CI runs on Azure Pipelines. Hosting code in Azure Repos would mean running a release-please fork or a different tool, so it is out of scope.
+This repository follows upstream's forge support; it does not build its own. Status as of 2026-11-22:
 
-Recorded for completeness:
+- **GitLab:** no upstream support. The community provider PR #2631 was closed unmerged.
+- **Azure Repos:** no upstream support. The request (#1954) was closed *not planned*.
+- **Pluggable providers:** #1021 is still open.
 
-- Upstream will not add Azure Repos (#1954).
-- An adapter would have to implement the internal `Scm` interface, about 25 methods.
-- The closest existing tool is [monkescience/yeet](https://github.com/monkescience/yeet): pre-1.0, one maintainer, telemetry on by default.
+What to watch: new implementations of the `Scm` interface in release-please's `build/src/`, or changes to it. When one ships, adding it here takes four things:
+
+1. A `createScm()` case.
+2. A `forge` template value.
+3. Token minting for that forge, such as `System.AccessToken` for Azure Repos.
+4. A guide.
+
+The weekly upgrade check in [HANDOFF.md](../HANDOFF.md) catches this.
 
 ## Validation checklist
 

@@ -1,9 +1,10 @@
 # SPDX-FileCopyrightText: 2026 Skaphos
 # SPDX-License-Identifier: MIT
 #
-# Complete release-please job for a GitHub (github.com, GHE.com or GHES)
-# repository built by Azure Pipelines. Drop-in replacement for a GitHub
-# Actions workflow that uses googleapis/release-please-action.
+# Complete release-please job running in Azure Pipelines. Drop-in replacement
+# for a CI workflow that uses googleapis/release-please-action. The forge is
+# whatever upstream release-please supports; today that is GitHub (github.com,
+# GHE.com or GHES), so this job mints a GitHub App token.
 #
 # Outputs (from later jobs/stages), e.g. with jobName release_please:
 #   dependencies.release_please.outputs['release_please.releases_created']

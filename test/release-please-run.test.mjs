@@ -91,6 +91,8 @@ test('readConfig validates and defaults', () => {
   assert.throws(() => readConfig({}), /RP_TOKEN/u);
   assert.throws(() => readConfig({ RP_TOKEN: 't', RP_REPO_URL: 'nope' }), /owner\/repo/u);
   assert.throws(() => readConfig({ RP_TOKEN: 't', RP_REPO_URL: 'a/b', RP_RELEASE_MODE: 'x' }), /RP_RELEASE_MODE/u);
+  assert.throws(() => readConfig({ RP_TOKEN: 't', RP_REPO_URL: 'a/b', RP_FORGE: 'gitlab' }), /RP_FORGE must be one of github/u);
+  assert.equal(readConfig({ RP_TOKEN: 't', RP_REPO_URL: 'a/b' }).forge, 'github');
   const cfg = readConfig({
     RP_TOKEN: 't',
     RP_REPO_URL: 'https://github.acme.internal/acme/widgets.git',

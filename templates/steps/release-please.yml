@@ -11,6 +11,10 @@ parameters:
   - name: toolsPath
     type: string
     default: $(Pipeline.Workspace)/release-please-ado
+  - name: forge
+    type: string
+    default: github
+    values: [github]         # grows as upstream release-please adds forges
   - name: token
     type: string
     default: $(GITHUB_TOKEN)
@@ -56,6 +60,7 @@ steps:
     name: ${{ parameters.name }}
     displayName: release-please (${{ parameters.releaseMode }})
     env:
+      RP_FORGE: ${{ parameters.forge }}
       RP_TOKEN: ${{ parameters.token }}
       RP_REPO_URL: ${{ parameters.repoUrl }}
       RP_API_URL: ${{ parameters.apiUrl }}

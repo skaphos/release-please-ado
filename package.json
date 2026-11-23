@@ -2,7 +2,7 @@
   "name": "release-please-ado",
   "version": "0.0.0",
   "private": true,
-  "description": "Run googleapis/release-please from Azure DevOps Pipelines.",
+  "description": "release-please for Azure DevOps Pipelines: run upstream release-please in ADO for any forge it supports.",
   "license": "MIT",
   "type": "module",
   "engines": {

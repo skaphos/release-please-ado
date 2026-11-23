@@ -1,6 +1,6 @@
 # release-please-ado
 
-Run [googleapis/release-please](https://github.com/googleapis/release-please) from **Azure DevOps Pipelines** when GitHub Actions is not allowed.
+This repository brings [googleapis/release-please](https://github.com/googleapis/release-please) to **Azure DevOps Pipelines**. Release-please normally runs as a GitHub Action, or as a job in another forge's CI. Here it runs in Azure Pipelines instead, against any repository host release-please supports.
 
 `release-please-action` is a thin wrapper around the release-please library. This repository is the Azure Pipelines version of that wrapper. It provides:
 
@@ -17,8 +17,12 @@ Run [googleapis/release-please](https://github.com/googleapis/release-please) fr
 
 ## Scope
 
-- **Supported:** source repositories on **GitHub** (github.com, GHE.com, or GHES) with CI on **Azure Pipelines**. This has full parity with release-please-action, and existing `release-please-config.json` files work unchanged. Start with [the GitHub Enterprise guide](docs/guides/github-enterprise.md).
-- **Out of scope:** source code hosted in Azure Repos. Upstream release-please is GitHub-only, so that would need a fork.
+This repository supplies the **runner**; upstream release-please decides which **forges** work.
+
+- **Upstream forges are supported here.** Whatever repository hosts upstream release-please supports, this repository runs it from Azure Pipelines, without forking release-please.
+- **Today that is GitHub:** github.com, GHE.com and GHES. Parity with release-please-action is full, and existing `release-please-config.json` files work unchanged. Start with [the GitHub Enterprise guide](docs/guides/github-enterprise.md).
+- **If upstream adds a forge** (GitLab, Azure Repos, or anything else), this repository adds it to the runner's `forge` switch and the templates. The release logic stays upstream's.
+- **Not built here:** forge support that upstream doesn't have. Adding it would mean forking release-please.
 
 ## Quickstart (GitHub repo, Azure Pipelines CI)
 
