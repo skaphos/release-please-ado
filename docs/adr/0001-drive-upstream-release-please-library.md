@@ -32,4 +32,4 @@ Option 2. The runner pins `release-please` exactly, through `package.json` and i
 - **Config portability.** Existing `release-please-config.json` and manifest files work unchanged.
 - **Tracking the action.** We track the action's output contract by hand; `test/release-please-run.test.mjs` pins it.
 - **Upgrades.** A release-please upgrade means bumping the pin and re-running the tests and the dry-run smoke test.
-- **Azure Repos.** It stays unsupported until the separate `Scm` adapter work ([design](../design/azure-repos-scm.md)) lands. That work builds on this runner.
+- **Azure Repos.** Source hosted in Azure Repos is out of scope. Source stays on GitHub, and only CI moves to Azure Pipelines.

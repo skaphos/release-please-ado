@@ -60,12 +60,11 @@ manifest.createReleases() / createPullRequests()
   [V]
 - **The internal `Scm` interface.** Since **17.5.0** ("create Scm abstraction", #2729) the library has one: `Manifest.fromManifest`/`fromConfig` accept any `Scm`, and `GitHub` implements it. [V] `build/src/scm.d.ts`
   - `Scm` is not exported from the package index. `package.json` has no `exports` map, though, so a deep import of `release-please/build/src/scm` works.
-  - A custom Azure Repos `Scm` is therefore technically possible. It is about 25 methods; see [design/azure-repos-scm.md](design/azure-repos-scm.md).
-- **Consequence.** With a GitHub repo, Azure Pipelines can be the runner at **full parity**. With an Azure Repos repo, upstream release-please cannot be used as-is.
+- **Consequence.** Source stays on GitHub (github.com, GHE.com, or GHES), and Azure Pipelines is only the runner. That gives **full parity** with release-please-action and needs no fork. This repository is scoped to that model.
 
 ## 3. GitHub API surface release-please needs
 
-This list drives token permissions and the Azure Repos adapter design. [V] `github.js`, `github-api.js`, `manifest.js`
+This list drives the token permissions. [V] `github.js`, `github-api.js`, `manifest.js`
 
 - **GraphQL**
   - Commit history: `repository.ref(...).target.history`, including `associatedPullRequests` with labels, head ref, merge commit and files.
@@ -188,34 +187,15 @@ See `oiax/.github/workflows/release-please.yml`.
 
 Tags pushed this way are created by the App. In orgs whose tag rulesets let only the release bot create `v*` tags, that is exactly the identity that's allowed.
 
-## 7. Azure Repos as the source
+## 7. Out of scope: Azure Repos as the source
 
-Covered in depth in [guides/azure-repos.md](guides/azure-repos.md). Key facts:
+Source code stays on GitHub; only CI runs on Azure Pipelines. Hosting code in Azure Repos would mean running a release-please fork or a different tool, so it is out of scope.
 
-- **Pipeline identity permissions.** The build service identity is `{Project} Build Service ({Org})`, or the collection identity unless *Limit job authorization scope* is on. It needs these on the repo:
-  - **Contribute**
-  - **Create branch**
-  - **Create tag**
-  - **Contribute to pull requests**
-  - **Force push**, for the release branch only
+Recorded for completeness:
 
-  A release-PR flow does not need *Bypass policies*. [V] [Learn: access tokens](https://learn.microsoft.com/en-us/azure/devops/pipelines/process/access-tokens) and [repo permissions](https://learn.microsoft.com/en-us/azure/devops/repos/git/set-git-repository-permissions)
-- **PR labels exist:** `POST .../pullRequests/{id}/labels?api-version=7.1`, scope `vso.code_write`. `az repos pr create --labels` works, but `az repos pr update` cannot set labels. [V]
-- **There is no Release object in Azure Repos.** Releases are tags plus annotated-tag notes, with Pipeline artifacts, Universal Packages, or the wiki for assets. [V]
-- **Merge message prefix.** Merges and squashes default to the subject `Merged PR <n>: <title>`, which breaks conventional-commit parsing unless it is stripped or overridden. [S]
-- **PR descriptions over 4,000 characters are reportedly rejected.** This would truncate long changelogs in the PR body. [U]
-- **YAML `pr:` triggers do not apply to Azure Repos.** PR builds come from a Build Validation branch policy. [V]
-- **Existing tools.**
-
-  | Tool | Fit |
-  | --- | --- |
-  | [monkescience/yeet](https://github.com/monkescience/yeet) | Closest. A Go release-PR tool with a native Azure DevOps provider and a release-please migration guide. 7 stars, one maintainer, pre-1.0, telemetry on by default. |
-  | `PipelineChangelog@1` (sethbacon) | Immature. |
-  | axiansinfoma/ado-releases | Adds Releases to Azure Repos; three days old at the time of research. |
-  | semantic-release, release-it, git-cliff, cocogitto, commitizen, GitVersion | Do **not** implement a release PR on Azure Repos. |
-  | knope, release-plz, releasaurus, changesets | Have release PRs but no Azure DevOps forge. |
-
-  [V/S], details in the Azure Repos guide.
+- Upstream will not add Azure Repos (#1954).
+- An adapter would have to implement the internal `Scm` interface, about 25 methods.
+- The closest existing tool is [monkescience/yeet](https://github.com/monkescience/yeet): pre-1.0, one maintainer, telemetry on by default.
 
 ## Validation checklist
 
@@ -227,4 +207,3 @@ These items need a real Azure DevOps org before v1.0. They are tracked in [HANDO
 - [ ] `NODE_USE_ENV_PROXY=1` works through a corporate proxy on the pinned Node.
 - [ ] A GHES end-to-end run, plus a GraphQL URL check.
 - [ ] `tag-only` against a repo with tag rulesets.
-- [ ] Azure Repos: build identity permissions, PR label API, the 4,000-character description limit, the merge-message prefix.

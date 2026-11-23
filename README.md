@@ -15,12 +15,10 @@ Run [googleapis/release-please](https://github.com/googleapis/release-please) fr
   - corporate proxies
   - `tag-only` mode, which creates the tag but no GitHub Release object
 
-## Where is your code hosted?
+## Scope
 
-| Source repository | CI | Support |
-| --- | --- | --- |
-| GitHub (github.com, GHE.com, or GHES) | Azure Pipelines | **Full parity** with release-please-action. Start with [the GitHub Enterprise guide](docs/guides/github-enterprise.md). |
-| Azure Repos Git | Azure Pipelines | **Not supported by release-please upstream.** See [the Azure Repos guide](docs/guides/azure-repos.md) for the options, the interim recommendation, and the planned adapter. |
+- **Supported:** source repositories on **GitHub** (github.com, GHE.com, or GHES) with CI on **Azure Pipelines**. This has full parity with release-please-action, and existing `release-please-config.json` files work unchanged. Start with [the GitHub Enterprise guide](docs/guides/github-enterprise.md).
+- **Out of scope:** source code hosted in Azure Repos. Upstream release-please is GitHub-only, so that would need a fork.
 
 ## Quickstart (GitHub repo, Azure Pipelines CI)
 
@@ -57,7 +55,6 @@ Start at [docs/README.md](docs/README.md). The most useful pages:
 
 - [Research findings](docs/research.md): what release-please needs from the platform, and why each design choice was made
 - [GitHub Enterprise + Azure Pipelines setup guide](docs/guides/github-enterprise.md)
-- [Azure Repos guide](docs/guides/azure-repos.md)
 - [Migrating from GitHub Actions](docs/guides/migrating-from-github-actions.md)
 - [Template and output reference](docs/reference/templates.md)
 

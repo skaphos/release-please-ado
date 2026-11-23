@@ -41,6 +41,6 @@ Later stages read the outputs (`releases_created`, `tag_name`, ...) to decide wh
 
 ## Known limitations
 
-- Source must be on GitHub (github.com, GHE.com, or GHES). Azure Repos needs the planned [`AzureReposScm`](design/azure-repos-scm.md).
+- Source must be on GitHub (github.com, GHE.com, or GHES). Azure Repos-hosted source is out of scope, because upstream release-please is GitHub-only.
 - Template behavior in a live Azure DevOps org has not been validated yet. See the [validation checklist](research.md#validation-checklist).
 - Key Vault-side JWT signing, where the private key never leaves the vault, is planned but not implemented.

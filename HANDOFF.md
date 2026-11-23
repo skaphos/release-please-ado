@@ -6,6 +6,8 @@ This file is the working brief for the next session, local or cloud. Read it, [A
 
 > We're about to work under enterprise rules that limit us to Azure DevOps. release-please is published as a GitHub Action, which won't be available. I need to be able to fully duplicate release-please using ADO. Set it up, do full research, write it up with guides, and create templates and anything else this repo needs to support that.
 
+**Scope (clarified by the maintainer):** source repositories stay on **GitHub**, and only CI runs on **Azure Pipelines**. Hosting code in Azure Repos is out of scope; it would require a release-please fork. Do not add Azure Repos support.
+
 ## State as of 2026-11-22
 
 **Done in this repo** (branch `feat/initial-scaffold`, PR into `main`):
@@ -19,13 +21,11 @@ This file is the working brief for the next session, local or cloud. Read it, [A
 - **Example.** `examples/github-enterprise/` (consumer pipeline plus config).
 - **Docs.**
   - [GitHub Enterprise guide](docs/guides/github-enterprise.md)
-  - [Azure Repos guide](docs/guides/azure-repos.md)
   - [migration guide](docs/guides/migrating-from-github-actions.md)
   - [troubleshooting](docs/guides/troubleshooting.md)
   - [template reference](docs/reference/templates.md)
   - [architecture](docs/architecture.md)
   - [ADR 0001](docs/adr/0001-drive-upstream-release-please-library.md)
-  - [AzureReposScm design](docs/design/azure-repos-scm.md)
 - **Tests.** `npm test` runs 15 `node:test` cases, all passing.
 - **Smoke test.** A dry run against `skaphos/oiax` with a read-only token produced the expected `chore(main): release 2.1.3` plan.
 
@@ -42,7 +42,7 @@ This file is the working brief for the next session, local or cloud. Read it, [A
    - Then run a real dry run against a scratch GitHub repo, then a real release.
    - Confirm the output reference shapes in `examples/github-enterprise/azure-pipelines.release.yml`.
 2. **Key Vault-side JWT signing option.** Add a `templates/steps/github-app-token-keyvault.yml` that signs the JWT with `az keyvault key sign` inside `AzureCLI@2`, so the private key never leaves the vault. The minter needs a mode that accepts a pre-signed JWT, or one that calls a signing command.
-3. **`AzureReposScm`** ([design](docs/design/azure-repos-scm.md)). This is what fully duplicates release-please for Azure Repos. It is the largest item; follow the work breakdown in the design doc. Pin `release-please` exactly, and add a weekly upgrade-gate CI job.
+3. **Upgrade gate.** Add a weekly CI job that runs the tests against `release-please@latest`. Also diff upstream `release-please-action/src/index.ts` against `computeOutputs()`, so output drift is caught before consumers notice.
 4. **Release this repo.**
    - Once validated, release-please on GitHub Actions (this repo is on github.com) cuts `v0.1.0`.
    - Consumers pin `ref: refs/tags/v0.1.0`.
