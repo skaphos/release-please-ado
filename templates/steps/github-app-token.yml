@@ -1,0 +1,46 @@
+# SPDX-FileCopyrightText: 2026 Skaphos
+# SPDX-License-Identifier: MIT
+#
+# Mint a short-lived, repository-scoped GitHub App installation token.
+# Equivalent of actions/create-github-app-token. The token is exposed as the
+# secret variable $(GITHUB_TOKEN) in this job and as the output variable
+# <name>.GITHUB_TOKEN for later jobs.
+#
+# The private key must come from a secret variable (ideally a variable group
+# linked to Azure Key Vault). Secret variables are not mapped into scripts
+# automatically; this template maps it explicitly via `env`.
+parameters:
+  - name: name
+    type: string
+    default: github_token
+  - name: toolsPath
+    type: string
+    default: $(Pipeline.Workspace)/release-please-ado
+  - name: appId
+    type: string             # App ID or Client ID, e.g. $(RELEASE_BOT_APP_ID)
+  - name: privateKeyVariable
+    type: string
+    default: RELEASE_BOT_PRIVATE_KEY   # NAME of the secret variable holding the PEM
+  - name: owner
+    type: string
+  - name: repositories
+    type: string             # space/comma separated repo names
+  - name: apiUrl
+    type: string
+    default: https://api.github.com
+  - name: permissions
+    type: string
+    default: '{"contents":"write","pull_requests":"write","issues":"write"}'
+
+steps:
+  - bash: node "${{ parameters.toolsPath }}/scripts/mint-github-app-token.mjs"
+    name: ${{ parameters.name }}
+    displayName: Mint GitHub App installation token
+    env:
+      GITHUB_APP_ID: ${{ parameters.appId }}
+      GITHUB_APP_PRIVATE_KEY: $(${{ parameters.privateKeyVariable }})
+      GITHUB_OWNER: ${{ parameters.owner }}
+      GITHUB_REPOSITORIES: ${{ parameters.repositories }}
+      GITHUB_API_URL: ${{ parameters.apiUrl }}
+      GITHUB_TOKEN_PERMISSIONS: ${{ parameters.permissions }}
+      NODE_USE_ENV_PROXY: '1'

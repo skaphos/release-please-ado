@@ -1,0 +1,19 @@
+{
+  "name": "release-please-ado",
+  "version": "0.0.0",
+  "private": true,
+  "description": "release-please for Azure DevOps Pipelines: run upstream release-please in ADO for any forge it supports.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "release-please": "node scripts/release-please-run.mjs",
+    "mint-token": "node scripts/mint-github-app-token.mjs"
+  },
+  "dependencies": {
+    "release-please": "17.11.2"
+  }
+}

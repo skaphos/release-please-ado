@@ -1,0 +1,130 @@
+# SPDX-FileCopyrightText: 2026 Skaphos
+# SPDX-License-Identifier: MIT
+#
+# Complete release-please job running in Azure Pipelines. Drop-in replacement
+# for a CI workflow that uses googleapis/release-please-action. The forge is
+# whatever upstream release-please supports; today that is GitHub (github.com,
+# GHE.com or GHES), so this job mints a GitHub App token.
+#
+# Outputs (from later jobs/stages), e.g. with jobName release_please:
+#   dependencies.release_please.outputs['release_please.releases_created']
+#   stageDependencies.<stage>.release_please.outputs['release_please.tag_name']
+parameters:
+  - name: jobName
+    type: string
+    default: release_please
+  - name: toolsRepository
+    type: string
+    default: release_please_ado   # alias of this repo in the caller's `resources.repositories`
+  - name: pool
+    type: object
+    default:
+      vmImage: ubuntu-24.04
+  - name: variableGroups
+    type: object
+    default: []                  # e.g. [release-bot] (Key Vault-linked)
+  - name: appId
+    type: string
+    default: $(RELEASE_BOT_APP_ID)
+  - name: privateKeyVariable
+    type: string
+    default: RELEASE_BOT_PRIVATE_KEY
+  - name: owner
+    type: string
+  - name: repository
+    type: string                 # repo name without owner
+  - name: apiUrl
+    type: string
+    default: https://api.github.com
+  - name: graphqlUrl
+    type: string
+    default: ''
+  - name: targetBranch
+    type: string
+    default: ''
+  - name: configFile
+    type: string
+    default: release-please-config.json
+  - name: manifestFile
+    type: string
+    default: .release-please-manifest.json
+  - name: releaseType
+    type: string
+    default: ''
+  - name: releaseMode
+    type: string
+    default: github-release
+    values: [github-release, tag-only, none]
+  - name: skipPullRequest
+    type: boolean
+    default: false
+  - name: dryRun
+    type: boolean
+    default: false
+  - name: nodeVersion
+    type: string
+    default: '24.x'
+  - name: installNode
+    type: boolean
+    default: true
+  - name: nodejsMirror
+    type: string
+    default: ''
+  - name: npmRegistry
+    type: string
+    default: ''
+  - name: timeoutInMinutes
+    type: number
+    default: 20
+
+jobs:
+  - job: ${{ parameters.jobName }}
+    displayName: release-please
+    pool: ${{ parameters.pool }}
+    timeoutInMinutes: ${{ parameters.timeoutInMinutes }}
+    variables:
+      - ${{ each group in parameters.variableGroups }}:
+          - group: ${{ group }}
+    steps:
+      # release-please works through the GitHub API only, so the consumer repo
+      # is not needed on disk. Listing only the tools repo means `self` is not
+      # checked out (ADO checks out exactly the repos named in checkout steps).
+      - checkout: ${{ parameters.toolsRepository }}
+        path: release-please-ado
+        fetchDepth: 1
+
+      - template: ../steps/setup.yml
+        parameters:
+          nodeVersion: ${{ parameters.nodeVersion }}
+          installNode: ${{ parameters.installNode }}
+          nodejsMirror: ${{ parameters.nodejsMirror }}
+          npmRegistry: ${{ parameters.npmRegistry }}
+
+      - template: ../steps/github-app-token.yml
+        parameters:
+          appId: ${{ parameters.appId }}
+          privateKeyVariable: ${{ parameters.privateKeyVariable }}
+          owner: ${{ parameters.owner }}
+          repositories: ${{ parameters.repository }}
+          apiUrl: ${{ parameters.apiUrl }}
+
+      - template: ../steps/release-please.yml
+        parameters:
+          repoUrl: ${{ parameters.owner }}/${{ parameters.repository }}
+          apiUrl: ${{ parameters.apiUrl }}
+          graphqlUrl: ${{ parameters.graphqlUrl }}
+          targetBranch: ${{ parameters.targetBranch }}
+          configFile: ${{ parameters.configFile }}
+          manifestFile: ${{ parameters.manifestFile }}
+          releaseType: ${{ parameters.releaseType }}
+          releaseMode: ${{ parameters.releaseMode }}
+          skipPullRequest: ${{ parameters.skipPullRequest }}
+          dryRun: ${{ parameters.dryRun }}
+
+      - bash: node "$(Pipeline.Workspace)/release-please-ado/scripts/revoke-github-token.mjs"
+        displayName: Revoke GitHub token
+        condition: always()
+        env:
+          GITHUB_TOKEN: $(GITHUB_TOKEN)
+          GITHUB_API_URL: ${{ parameters.apiUrl }}
+          NODE_USE_ENV_PROXY: '1'

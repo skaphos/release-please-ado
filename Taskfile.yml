@@ -1,0 +1,30 @@
+version: '3'
+
+tasks:
+  deps:
+    desc: Install the pinned release-please
+    cmds:
+      - npm ci --no-audit --no-fund
+
+  test:
+    desc: Run unit tests
+    cmds:
+      - npm test
+
+  lint:yaml:
+    desc: Lint workflow, template and example YAML
+    cmds:
+      - yamllint --strict .
+
+  check:
+    desc: Run what CI runs locally (except DCO/REUSE)
+    cmds:
+      - task: test
+      - task: lint:yaml
+
+  smoke:
+    desc: Read-only dry run against a real repo (REPO=owner/name)
+    requires:
+      vars: [REPO]
+    cmds:
+      - RP_TOKEN="$(gh auth token)" RP_REPO_URL={{.REPO}} RP_DRY_RUN=true node scripts/release-please-run.mjs

@@ -1,0 +1,57 @@
+# SPDX-FileCopyrightText: 2026 Skaphos
+# SPDX-License-Identifier: MIT
+#
+# Install Node and this repository's pinned dependencies (release-please).
+# Run after checking out this repository to `toolsPath`.
+parameters:
+  - name: toolsPath
+    type: string
+    default: $(Pipeline.Workspace)/release-please-ado
+  - name: nodeVersion
+    type: string
+    default: '24.x'          # release-please 17.10+ requires Node >= 22
+  - name: nodejsMirror
+    type: string
+    default: ''              # internal mirror when nodejs.org is blocked (ADO Services only)
+  - name: installNode
+    type: boolean
+    default: true            # false on self-hosted agents with Node preinstalled
+  - name: npmRegistry
+    type: string
+    default: ''              # e.g. https://pkgs.dev.azure.com/ORG/_packaging/FEED/npm/registry/
+  - name: cacheNpm
+    type: boolean
+    default: true
+
+steps:
+  - ${{ if parameters.installNode }}:
+      - task: UseNode@1
+        displayName: Use Node ${{ parameters.nodeVersion }}
+        inputs:
+          version: ${{ parameters.nodeVersion }}
+          ${{ if ne(parameters.nodejsMirror, '') }}:
+            nodejsMirror: ${{ parameters.nodejsMirror }}
+
+  - ${{ if ne(parameters.npmRegistry, '') }}:
+      - bash: |
+          set -euo pipefail
+          printf 'registry=%s\nalways-auth=true\n' '${{ parameters.npmRegistry }}' > .npmrc
+        displayName: Point npm at the internal feed
+        workingDirectory: ${{ parameters.toolsPath }}
+      - task: npmAuthenticate@0
+        displayName: Authenticate to the internal feed
+        inputs:
+          workingFile: ${{ parameters.toolsPath }}/.npmrc
+
+  - ${{ if parameters.cacheNpm }}:
+      - task: Cache@2
+        displayName: Cache npm downloads
+        inputs:
+          key: 'npm | "$(Agent.OS)" | ${{ parameters.toolsPath }}/package-lock.json'
+          restoreKeys: |
+            npm | "$(Agent.OS)"
+          path: $(Pipeline.Workspace)/.npm
+
+  - bash: npm ci --no-audit --no-fund --cache "$(Pipeline.Workspace)/.npm"
+    displayName: Install release-please (npm ci)
+    workingDirectory: ${{ parameters.toolsPath }}
