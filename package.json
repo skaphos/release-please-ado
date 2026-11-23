@@ -1,6 +1,6 @@
 {
   "name": "release-please-ado",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "description": "release-please for Azure DevOps Pipelines: run upstream release-please in ADO for any forge it supports.",
   "license": "MIT",
